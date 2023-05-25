@@ -37,7 +37,7 @@ refs.form.addEventListener('submit', onSubmit)
 refs.loadMoreBtn.addEventListener('click', fetchImages);
 
 const totalHits = galleryImages.getGallery();
-// console.log(totalHits);
+
 
 function onSubmit(even) {
     even.preventDefault()
