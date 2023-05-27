@@ -55,13 +55,13 @@ async function onSubmit(even) {
   
     const result = await galleryImages.getGallery().finally(()=> form.reset());
     
-  message(result)
+  
     console.log(result);
   if (result.hits) {
     createMarkup(result)
     
   }
-
+  message(result)
 }
 
 function createMarkup(result) {
@@ -81,6 +81,7 @@ function message(result) {
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.'
     );
+    loadMoreBtn.hide()
     console.log('hello');
     return 
     }
