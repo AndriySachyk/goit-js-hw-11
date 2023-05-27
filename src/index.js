@@ -34,74 +34,70 @@ const galleryImages = new GalleryImages();
 
 refs.form.addEventListener('submit', onSubmit)
 
-refs.loadMoreBtn.addEventListener('click', fetchImages);
-
-const totalHits = galleryImages.getGallery();
+refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
 
-function onSubmit(even) {
-    even.preventDefault()
-    const form = even.currentTarget;
-    const value = form.elements.searchQuery.value.trim();
 
-    if (value === '') {
-      Notiflix.Notify.warning('Please fill in the field');
-    } else {
-      
-        galleryImages.searchQuery = value;
-        galleryImages.resetPage();
-
-        console.log(galleryImages.getGallery());
-      loadMoreBtn.show();
-      clearListImages();
-      fetchImages().finally(() => form.reset());
-    }
-  
-  
-}
-
-
-async function fetchImages() {
-  loadMoreBtn.disable();
-  
-  try {
-    const markup = await getImagesMarkup();
-    if (!markup) throw new Error('No data');
-    updateGalleryList(markup);
-    
-  } catch (err) {
-    onError(err);
-  }
-  
+async function onSubmit(even) {
+  even.preventDefault();
+  const form = even.currentTarget
+  const value = form.elements.searchQuery.value.trim();
+  galleryImages.searchQuery = value
+  galleryImages.resetPage()
+  clearGalleryList();
   loadMoreBtn.enable();
-}
 
-async function getImagesMarkup() {
-  try {
-    const {hits, totalHits} = await galleryImages.getGallery();
-    
-    if (!hits) {
-      loadMoreBtn.hide();
-      return '';
-    }
-    if (hits.length === 0) throw new Error('No data');
-    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`
-    );
-    return hits.reduce((markup, image) => markup + createMarkup(image), '');
-    } catch (err) {
-      onError(err);
-    }
+
+  if (!galleryImages.searchQuery) {
+    Notiflix.Notify.warning('Please fill in this field');
+    return
   }
   
-function createMarkup({
-  webformatURL,
+    const result = await galleryImages.getGallery().finally(()=> form.reset());
+    
+  message(result)
+    console.log(result);
+  if (result.hits) {
+    createMarkup(result)
+    
+  }
+
+}
+
+function createMarkup(result) {
+  const markup = result.hits.reduce(
+    (markup, image) => markup + createGalleryItem(image),
+    ''
+  );
+  
+  
+  updateMarkup(markup);
+  loadMoreBtn.show();
+}
+
+
+function message(result) {
+  if (result.hits.length === 0) {
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    console.log('hello');
+    return 
+    }
+    if (result.totalHits >= result.hits.length ) {
+      Notiflix.Notify.success(`Hooray! We found ${result.totalHits} images.`);
+    }
+
+}
+
+
+function createGalleryItem({ webformatURL,
   tags,
   likes,
   views,
   comments,
-  downloads,
-}) {
-  return `<div class="photo-card">
+  downloads,}) {
+ return `<div class="photo-card">
   <img src="${webformatURL}" alt="${tags}" loading="lazy" width="360" height="280"/>
   <div class="info">
     <p class="info-item">
@@ -120,35 +116,47 @@ function createMarkup({
 </div>`;
 }
 
-function updateGalleryList(markup) {
-    refs.gallery.insertAdjacentHTML("beforeend", markup);
+
+function updateMarkup(markup) {
+  
+  refs.gallery.insertAdjacentHTML('beforeend', markup);
+    
+}
+
+
+function clearGalleryList() {
+  refs.gallery.innerHTML = " "
+  loadMoreBtn.hide();
+}
+
+
+ function onLoadMore() {
+  
+  loadMoreBtn.disable()
+  
+   
+  addItemGallery();
+
+  loadMoreBtn.enable()
+
+}
+
+
+async function addItemGallery() {
+  const result = await galleryImages.getGallery()
+   
+  try {
+    if (!result.hits.length) throw new Error('No data');
+    createMarkup(result);
+    console.log(result);
+  } catch (err) {
+    Notiflix.Notify.failure(
+      "We're sorry, but you've reached the end of search results."
+    );
+
+    loadMoreBtn.end();
+
   }
   
-
-function onError(err) {
-  console.error(err);
-  loadMoreBtn.hide()
-Notiflix.Notify.failure(
-'Sorry, there are no images matching your search query. Please try again.'
-);
 }
-
-function clearListImages() {
-refs.gallery.innerHTML = ""
-}
-
-
-
-
-
-function handleScroll() {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-
-  if (scrollTop + clientHeight >= scrollHeight - 5) {
-    fetchImages();
-  }
-}
-
-window.addEventListener("scroll", handleScroll);
-
 

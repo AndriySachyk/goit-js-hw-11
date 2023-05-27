@@ -6,8 +6,8 @@ const URL = 'https://pixabay.com/api/';
 
 export default class GalleryImages {
   constructor() {
-    this.page = 1;
-    this.searchQuery = '';
+    this.page = 0;
+    this.searchQury = '';
  
   }
 
@@ -17,16 +17,16 @@ export default class GalleryImages {
     );
     this.incrementPage();
     const galleryHits = gallery.data; 
-    console.log(gallery.data);
+    // console.log(gallery.data);
     return galleryHits;
   }
 
 
   resetPage() {
-    this.page = 1;
+   return this.page = 1;
   }
 
   incrementPage() {
-    this.page += 1;
+   return  this.page += 1;
   }
 }
