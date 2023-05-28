@@ -8,12 +8,12 @@ export default class GalleryImages {
   constructor() {
     this.page = 0;
     this.searchQury = '';
- 
+    this.perPage = 40
   }
 
   async getGallery() {
     const gallery = await axios.get(
-      `${URL}?key=${API_KEY}&q=${this.searchQuery}&per_page=40&image_type=photo&orientation=horizontal&safesearch=true&page=${this.page}`
+      `${URL}?key=${API_KEY}&q=${this.searchQuery}&per_page=${this.perPage}&image_type=photo&orientation=horizontal&safesearch=true&page=${this.page}`
     );
     this.incrementPage();
     const galleryHits = gallery.data; 

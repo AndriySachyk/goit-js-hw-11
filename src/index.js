@@ -45,23 +45,29 @@ async function onSubmit(even) {
   galleryImages.searchQuery = value
   galleryImages.resetPage()
   clearGalleryList();
-  loadMoreBtn.enable();
+  loadMoreBtn.show();
 
-
+  
   if (!galleryImages.searchQuery) {
     Notiflix.Notify.warning('Please fill in this field');
-    return
+    loadMoreBtn.hide()
+    return 
   }
-  
+  try {
     const result = await galleryImages.getGallery().finally(()=> form.reset());
     
-  
-    console.log(result);
-  if (result.hits) {
-    createMarkup(result)
     
-  }
+    console.log(result);
+    if (result.hits) {
+      createMarkup(result)
+      loadMoreBtn.enable();
+      
+    }
+
   message(result)
+  } catch (err) {
+    onError(err);
+  }
 }
 
 function createMarkup(result) {
@@ -72,7 +78,7 @@ function createMarkup(result) {
   
   
   updateMarkup(markup);
-  loadMoreBtn.show();
+  
 }
 
 
@@ -131,33 +137,52 @@ function clearGalleryList() {
 }
 
 
- function onLoadMore() {
+//  function onLoadMore() {
   
-  loadMoreBtn.disable()
+ 
   
    
-  addItemGallery();
-
-  loadMoreBtn.enable()
-
-}
+//   addItemGallery();
 
 
-async function addItemGallery() {
-  const result = await galleryImages.getGallery()
-   
+
+// }
+
+
+async function onLoadMore() {
   try {
-    if (!result.hits.length) throw new Error('No data');
+    loadMoreBtn.disable();
+    const result = await galleryImages.getGallery();
+    const totalHits = Math.round(result.totalHits / galleryImages.perPage);
+    const thisPage = galleryImages.page;
+    const newArry = [];
+    loadMoreBtn.enable();
+    newArry.push(totalHits);
+    console.log(newArry);
+    console.log(totalHits);
+    console.log(thisPage);
+    if (thisPage > totalHits) {
+      Notiflix.Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+        );
+        loadMoreBtn.end();
+        return 
+    }
     createMarkup(result);
     console.log(result);
   } catch (err) {
-    Notiflix.Notify.failure(
-      "We're sorry, but you've reached the end of search results."
-    );
+    onError(err);
 
     loadMoreBtn.end();
-
   }
-  
+
 }
 
+
+
+function onError(err) {
+  Notiflix.Notify.failure(
+    'Sorry, there are no images matching your search query. Please try again.'
+  );
+  console.error(err)
+}
