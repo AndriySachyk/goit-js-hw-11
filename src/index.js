@@ -56,7 +56,6 @@ async function onSubmit(even) {
   try {
     const result = await galleryImages.getGallery().finally(()=> form.reset());
     
-    
     console.log(result);
     if (result.hits) {
       createMarkup(result)
@@ -153,21 +152,7 @@ async function onLoadMore() {
   try {
     loadMoreBtn.disable();
     const result = await galleryImages.getGallery();
-    const totalHits = Math.round(result.totalHits / galleryImages.perPage);
-    const thisPage = galleryImages.page;
-    const newArry = [];
-    loadMoreBtn.enable();
-    newArry.push(totalHits);
-    console.log(newArry);
-    console.log(totalHits);
-    console.log(thisPage);
-    if (thisPage > totalHits) {
-      Notiflix.Notify.failure(
-        "We're sorry, but you've reached the end of search results."
-        );
-        loadMoreBtn.end();
-        return 
-    }
+    theEnd();
     createMarkup(result);
     console.log(result);
   } catch (err) {
@@ -176,6 +161,23 @@ async function onLoadMore() {
     loadMoreBtn.end();
   }
 
+}
+
+
+
+function theEnd() {
+   const totalHits = Math.round(result.totalHits / galleryImages.perPage);
+    const thisPage = galleryImages.page;
+    
+    loadMoreBtn.enable();
+    
+    if (thisPage > totalHits) {
+      Notiflix.Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+        );
+        loadMoreBtn.end();
+        return 
+    }
 }
 
 
