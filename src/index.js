@@ -5,18 +5,8 @@ import LoadMoreBtn from './components/loadMoreBtn.js';
 import SimpleLightbox from "simplelightbox";
 // Додатковий імпорт стилів
 import "simplelightbox/dist/simple-lightbox.min.css";
-/*
-*Завдання 
-1. Створити refs
-2. Повісити слухачів
-3. Підключити бібліотеки. 
-4. З'єднати АРІ URL запити HTTP отримувати проміси  
-5. Створити функцію яка буде читати проміс і повертати значення з бек енду 
-6. Створити напопичувач макету markup 
-7. отримувати дані з input підставляти в запит HTTP
-8. Очищувати інпут після сабміт
-9. Створити розмітку.
-*/
+
+
 
 const refs = {
   form: document.getElementById('search-form'),
@@ -45,8 +35,8 @@ async function onSubmit(even) {
   galleryImages.searchQuery = value
   galleryImages.resetPage()
   clearGalleryList();
-  loadMoreBtn.show();
-
+  loadMoreBtn.hide();
+  form.reset()
   
   if (!galleryImages.searchQuery) {
     Notiflix.Notify.warning('Please fill in this field');
@@ -54,11 +44,12 @@ async function onSubmit(even) {
     return 
   }
   try {
-    const result = await galleryImages.getGallery().finally(()=> form.reset());
+    const result = await galleryImages.getGallery();
     
     console.log(result);
     if (result.hits) {
       createMarkup(result)
+      loadMoreBtn.show();
       loadMoreBtn.enable();
       
     }
@@ -136,25 +127,29 @@ function clearGalleryList() {
 }
 
 
-//  function onLoadMore() {
-  
- 
-  
-   
-//   addItemGallery();
 
-
-
-// }
 
 
 async function onLoadMore() {
   try {
     loadMoreBtn.disable();
     const result = await galleryImages.getGallery();
-    theEnd();
+    const totalHits = Math.round(result.totalHits / galleryImages.perPage);
+    const thisPage = galleryImages.page;
+    console.log(totalHits, 'total')
+    console.log(thisPage, 'thisPage')
+    
+    if (thisPage > totalHits) {
+      Notiflix.Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+      );
+      loadMoreBtn.end();
+      createMarkup(result);
+      return
+    }
     createMarkup(result);
     console.log(result);
+    loadMoreBtn.enable();
   } catch (err) {
     onError(err);
 
@@ -163,22 +158,6 @@ async function onLoadMore() {
 
 }
 
-
-
-function theEnd() {
-   const totalHits = Math.round(result.totalHits / galleryImages.perPage);
-    const thisPage = galleryImages.page;
-    
-    loadMoreBtn.enable();
-    
-    if (thisPage > totalHits) {
-      Notiflix.Notify.failure(
-        "We're sorry, but you've reached the end of search results."
-        );
-        loadMoreBtn.end();
-        return 
-    }
-}
 
 
 
